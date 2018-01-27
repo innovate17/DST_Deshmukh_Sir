@@ -1,0 +1,181 @@
+Bionomial Distribution
+
+Since only one out of five possible answers is correct, 
+the probability of answering a question correctly by random is 1/5=0.2. 
+We can find the probability of having exactly 4 correct answers by random attempts as follows.
+
+> dbinom(4, size=12, prob=0.2) 
+[1] 0.1329
+
+> dbinom(1,2,0.2)
+[1] 0.32
+> dbinom(0,2,0.2)
+[1] 0.64
+> dbinom(2,2,0.2)
+[1] 0.04
+
+> pbinom(4, size=12, prob=0.2) 
+[1] 0.92744
+Answer
+The probability of four or less questions answered correctly by random in a 
+twelve question multiple choice quiz is 92.7%.
+inverse
+
+> qbinom(0.96,2,0.2)
+[1] 1
+> qbinom(1,2,0.2)
+[1] 2
+
+Generating random points
+
+> table(rbinom(1000,10,0.2))
+
+  0   1   2   3   4   5   6 
+116 251 311 209  82  24   7 
+> dbinom(3,10,0.2)
+[1] 0.2013266
+> dbinom(2,10,0.2)
+[1] 0.3019899
+> dbinom(1,10,0.2)
+[1] 0.2684355
+> dbinom(0,10,0.2)
+[1] 0.1073742
+> dbinom(6,10,0.2)
+[1] 0.005505024
+
+Continuous Distribution
+
+Normal Distribution:
+
+d”	returns the height of the probability density function
+“p”	returns the cumulative density function
+“q”	returns the inverse cumulative density function (quantiles)
+“r”	returns randomly generated numbers
+
+
+> norm <- rnorm(100, 2, 0.5)
+> norm<- rnorm(10,2,0.2);
+> hist(rnorm(20000,2,0.2),breaks=20))
+> qnorm(0.84,10,2)
+[1] 11.98892
+> pnorm(12,10,2)
+[1] 0.8413447
+
+hist(rnorm(20000,2,0.2),breaks=20))
+
+plotting sampling mean distribution(Central Limit theorem)
+
+ x<- floor(runif(100,min=0,max=1000))
+ y<- numeric(20000)
+ 
+
+ for(i in 1:20000) {
+  z<-floor(runif(3,min=1,max=100))
+  m<-(x[z[1]]+x[z[2]]+x[z[3]])/3
+  y[i]<-m
+ }
+
+ hist(y,breaks=200)
+
+#Checking whether data is following certain probability distribution
+
+plotnorm<-function(x,cnt,cntbreaks){
+y<- numeric(cnt)
+ for(i in 1:cnt) {
+  z<-floor(runif(3,min=1,max=100))
+  m<-(x[z[1]]+x[z[2]]+x[z[3]])/3
+  y[i]<-m
+ }
+hist(y,breaks<-cntbreaks)
+
+}
+// x in seq(1,100,5
+calcfreq<- function(x) {
+y<-sort(x)
+z<-numeric(length(x))
+sm<-0
+for(i in 1:length(x))
+ {
+ sm<- sm+1/length(x)
+ z[i]<-sm
+
+ }
+return(z)
+
+}
+calcfreqprob<- function(x,tprob) {
+y<-sort(x)
+if(tprob==1)
+{
+mn <- mean(x)
+sdv<- sd(x)
+}
+
+z<-numeric(length(x))
+
+for(i in 1:length(x))
+ {
+ if(tprob==1)
+  {
+    sm<-pnorm(y[i],m=mn,sd=sdv)
+    z[i]<-sm
+  }
+
+ }
+return(z)
+
+}
+
+
+plottwovect<- function(x,z1,z2)
+{
+y<-sort(x)
+xrange<-range(y)
+yrange<-c(0,1)
+plot(xrange,yrange,type="n")
+lines(y,z1,type="l")
+lines(y,z2,type="l")
+
+
+}
+
+Testing whether data is following certain distribution
+1. Visual
+ x<-runif(1000,1,100)
+ z1<-calcfreq(x)
+ z2<-calcfreqprob(x,1)
+ plottwovect(x,z1,z2)
+
+
+2.Using chi-sqr distribution
+
+> calcchisqr(z1,z2)
+[1] 0.07921843
+> qchisq(0.90,df=length(z1)-2)
+[1] 13.36157
+
+3. Using KS statistics
+
+calcks<-function(x1,x2)
+{
+res<-0.0
+for(i in 1:length(x1))
+ {
+  if(abs(x1[i]-x2[i])>res)
+   {
+    res<-abs(x1[i]-x2[i])
+   }
+
+ }
+return(res)
+
+}
+
+
+0.2 =>1.07/sqrt(n)
+0.15=>1.14/sqrt(n)
+0.10=>1.22/sqrt(n)
+0.05=>1.36/sqrt(n)
+0.01=>1.63/sqrt(n)
+
+

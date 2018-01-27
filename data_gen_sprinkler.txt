@@ -1,0 +1,134 @@
+lv = c("c","nc")
+a = sample(lv, 1000, prob = c(1,1), replace = TRUE)
+lvs=c("s","ns")
+b = a
+b[b == "c"] = sample(lvs, length(which(b == "c")), prob = c(0.1, 0.9), replace = TRUE)
+b[b == "nc"] = sample(lvs, length(which(b == "nc")), prob = c(0.5, 0.5), replace = TRUE)
+
+lvr=c("r","nr")
+r = a
+r[r == "c"] = sample(lvr, length(which(r == "c")), prob = c(0.8, 0.2), replace = TRUE)
+r[r == "nc"] = sample(lvr, length(which(r == "nc")), prob = c(0.1, 0.9), replace = TRUE)
+
+lvw<-c("w","nw")
+w = apply(cbind(b,r), 1, paste, collapse= ":")
+w[w == "s:r"] = sample(lvw, length(which(w == "s:r")), prob = c(0.95, 0.05), replace = TRUE)
+w[w == "ns:r"] = sample(lvw, length(which(w == "ns:r")), prob = c(0.9, 0.1), replace = TRUE)
+w[w == "s:nr"] = sample(lvw, length(which(w == "s:nr")), prob = c(0.9, 0.1), replace = TRUE)
+w[w == "ns:nr"] = sample(lvw, length(which(w == "ns:nr")), prob = c(0.1, 0.9), replace = TRUE)
+
+spr = data.frame(
+  cl = factor(a, levels = lv),
+  sp = factor(b, levels = lvs),
+  rn = factor(r, levels = lvr),
+  wt = factor(w, levels = lvw)
+  )
+
+
+#End of data generation
+#Plotting various models
+
+
+library(bnlearn)
+bn<-naive.bayes(spr,"wt",c("cl","sp","rn"))
+plot(bn)
+bn<-tree.bayes(spr,"wt",c("cl","sp","rn"))
+plot(bn)
+bn<-gs(spr)
+#pwhitelist = data.frame(from = c("sp","rn"), to = c("wt","wt"))
+# bn<-gs(spr,whitelist<=pwhitelist)
+
+set.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
+bn<-set.arc(bn,"cl","rn",check.cycles = TRUE)
+bn<-set.arc(bn,"cl","sp",check.cycles = TRUE)
+plot(bn)
+bn<-set.arc(bn,"sp","wt",check.cycles = TRUE)
+bn<-set.arc(bn,"rn","wt",check.cycles = TRUE)
+plot(bn)
+bn<-drop.edge(bn, "sp", "rn", debug = FALSE)
+plot(bn)
+
+
+
+#checking prob tables
+
+fit<-bn.fit(bn,spr)
+fit
+
+
+
+#querying models
+#Check learning of model
+
+#cpquery(fit,event,evidence)
+
+cpquery(fit,(cl=="c"),(sp=="s"))
+cpquery(fit,(cl=="c"),(wt=="w"))
+cpquery(fit,(cl=="c"),(wt=="w")&(sp=="s"))
+cpquery(fit,(cl=="c")&(wt=="w"),(sp=="s"))
+
+cpquery(fit,(sp=="s"),(wt=="w"))
+cpquery(fit,(sp=="s"),(wt=="w")&(rn=="r"))
+ cpquery(fit,(sp=="s"),(wt=="w")&(rn=="nr"))
+
+Probability Calculation
+cpquery(fit,cl=="c",sp=="s")=
+
+1/(1+ cpquery(fit,sp=="s",cl=="nc")*cpquery(fit,cl=="nc",TRUE)/(cpquery(fit,sp=="s",cl=="c")*cpquery(fit,cl=="c",TRUE)))
+
+
+Validation
+
+
+bn.cv(data, bn, loss = NULL, k = 10, m=testsize, runs = 1)
+
+bn.cv(spr,bn,loss=NULL,k=10,m=50,runs=2)
+
+Prediction
+
+tan = tree.bayes(spr, "wt")
+fitted = bn.fit(tan, spr, method = "bayes")
+pred = predict(fitted, spr)
+table(pred, spr[, "wt"])
+
+pred   w  nw
+  w  624  60
+  nw  33 283
+
+nby = naive.bayes(spr, "wt")
+pred = predict(nby, spr)
+table(pred, spr[, "wt"])
+
+pred   w  nw
+  w  626  60
+  nw  31 283
+
+out of sample prediction
+
+sprtrain = spr[1:400, ]
+sprtest = spr[401:1000, ]
+nby = naive.bayes(sprtrain, "wt")
+fitted = bn.fit(nby,sprtrain)
+pred = predict(fitted, sprtest)
+table(pred, sprtest[, "wt"])
+
+
+pred = predict(bn, spr)
+table(pred, spr[, "wt"])
+
+#for gs method
+ pred<- predict(fit,"wt",spr)
+table(pred, spr[, "wt"])
+
+pred   w  nw
+  w  626  60
+  nw  31 283
+
+Mutual Information
+ci.test("sp","rn","cl",spr)
+
+
+
+
+
+
